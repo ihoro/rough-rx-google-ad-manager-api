@@ -34,6 +34,8 @@
     "access": "public"
   },
   "dependencies": {
-    "rxjs": "^6.3.3"
+    "google-auth-library": "^2.0.1",
+    "rxjs": "^6.3.3",
+    "soap": "^0.25.0"
   }
 }
