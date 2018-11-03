@@ -23,7 +23,7 @@ module.exports = class AdManager {
     let authClient = null;
     return of(this).pipe(
       // TODO: let's not authorize each time, re-use JWT token given for 1h
-      map(_ => auth.fromJSON(this.conf.googleJwtAuth)),
+      map(_ => auth.fromJSON(this.conf.jwtAuth)),
       tap(_authClient => authClient = _authClient),
       tap(authClient => authClient.scopes = ['https://www.googleapis.com/auth/dfp']),
       flatMap(authClient => from(authClient.authorize())),

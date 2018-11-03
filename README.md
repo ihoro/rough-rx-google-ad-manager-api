@@ -19,7 +19,7 @@ const AdManager = require('@rough/rx-google-ad-manager-api');
 const adManager = new AdManager({
   apiVersion: 'v201808',
   applicationName: 'my-app',
-  googleJwtAuth: {
+  jwtAuth: {
     client_email: 'me@example.com',
     private_key: '-----BEGIN PRIVATE KEY-----...',
     private_key_id: '...',
@@ -28,7 +28,7 @@ const adManager = new AdManager({
 });
 
 adManager.api.NetworkService.makeTestNetwork().subscribe(
-  result => console.log(reslt),
+  result => console.log(result),
   err => console.log('ERROR' + err)
 );
 ```
@@ -41,7 +41,7 @@ const adManager = new AdManager({
   apiVersion: 'v201808',
   applicationName: 'my-app',
   networkCode: '01234567890',
-  googleJwtAuth: {
+  jwtAuth: {
     client_email: 'me@example.com',
     private_key: '-----BEGIN PRIVATE KEY-----...',
     private_key_id: '...',
@@ -50,7 +50,7 @@ const adManager = new AdManager({
 });
 
 adManager.api.UserService.getCurrentUser().subscribe(
-  result => console.log(reslt),
+  result => console.log(result),
   err => console.log('ERROR' + err)
 );
 ```
