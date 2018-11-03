@@ -38,7 +38,7 @@
     "url": "https://github.com/ihoro/rough-rx-google-ad-manager-api/issues"
   },
   "homepage": "https://github.com/ihoro/rough-rx-google-ad-manager-api#readme",
-  "publisherConfig": {
+  "publishConfig": {
     "access": "public"
   },
   "dependencies": {
