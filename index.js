@@ -18,9 +18,10 @@ module.exports = class AdManager {
       }
     });
     this.credentials = null;
+    this.soapClients = {};
   }
 
-  authorize() {
+  _authorize() {
     if (this.credentials !== null)
       if (this.credentials.expiry_date > Date.now()) {
         return of(this.credentials);
@@ -34,17 +35,29 @@ module.exports = class AdManager {
     );
   }
 
-  request(serviceName, methodName, args) {
-    let credentials = null;
+  _getSoapClient(serviceName) {
+    const soapClient = this.soapClients[serviceName];
+    if (soapClient) {
+      soapClient.setSecurity(new soap.BearerSecurity(this.credentials.access_token));
+      return of(soapClient);
+    }
+
     return of(this).pipe(
-      flatMap(_ => this.authorize()),
-      tap(r => credentials = r),
-      // TODO: let's cache clients?
       flatMap(_ => from(soap.createClientAsync(`https://ads.google.com/apis/ads/publisher/${this.conf.apiVersion}/${serviceName}?wsdl`))),
       tap(soapClient => {
         soapClient.addSoapHeader(this.formSoapHeaders());
-        soapClient.setSecurity(new soap.BearerSecurity(credentials.access_token));
+        soapClient.setSecurity(new soap.BearerSecurity(this.credentials.access_token));
+        this.soapClients[serviceName] = soapClient;
       }),
+    );
+  }
+
+  request(serviceName, methodName, args) {
+    let credentials = null;
+    return of(this).pipe(
+      flatMap(_ => this._authorize()),
+      tap(r => credentials = r),
+      flatMap(_ => this._getSoapClient(serviceName)),
       flatMap(soapClient => from(soapClient[methodName + 'Async'](...args))), // TODO: add error verbosity to understand what methodName failed
       map(result => result[0]),
     );
