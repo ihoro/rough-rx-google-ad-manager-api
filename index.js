@@ -7,7 +7,6 @@ const { map, flatMap, tap } = require('rxjs/operators');
 
 module.exports = class AdManager {
   constructor(conf) {
-    this.conf = conf;
     this.api = new Proxy({}, {
       get: (_, serviceName) => {
         return new Proxy({}, {
@@ -17,11 +16,12 @@ module.exports = class AdManager {
         });
       }
     });
+    this.conf = conf;
     this.credentials = null;
     this.soapClients = {};
   }
 
-  _authorize() {
+  authorize() {
     if (this.credentials !== null)
       if (this.credentials.expiry_date > Date.now()) {
         return of(this.credentials);
@@ -35,7 +35,7 @@ module.exports = class AdManager {
     );
   }
 
-  _getSoapClient(serviceName) {
+  getSoapClient(serviceName) {
     const soapClient = this.soapClients[serviceName];
     if (soapClient) {
       soapClient.setSecurity(new soap.BearerSecurity(this.credentials.access_token));
@@ -55,9 +55,9 @@ module.exports = class AdManager {
   request(serviceName, methodName, args) {
     let credentials = null;
     return of(this).pipe(
-      flatMap(_ => this._authorize()),
+      flatMap(_ => this.authorize()),
       tap(r => credentials = r),
-      flatMap(_ => this._getSoapClient(serviceName)),
+      flatMap(_ => this.getSoapClient(serviceName)),
       flatMap(soapClient => from(soapClient[methodName + 'Async'](...args))), // TODO: add error verbosity to understand what methodName failed
       map(result => result[0]),
     );
