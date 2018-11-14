@@ -17,21 +17,33 @@ module.exports = class AdManager {
         });
       }
     });
+    this.credentials = null;
+  }
+
+  authorize() {
+    if (this.credentials !== null)
+      if (this.credentials.expiry_date > Date.now()) {
+        return of(this.credentials);
+      }
+
+    return of(this).pipe(
+      map(_ => auth.fromJSON(this.conf.jwtAuth)),
+      tap(authClient => authClient.scopes = ['https://www.googleapis.com/auth/dfp']),
+      flatMap(authClient => from(authClient.authorize())),
+      tap(r => this.credentials = r),
+    );
   }
 
   request(serviceName, methodName, args) {
-    let authClient = null;
+    let credentials = null;
     return of(this).pipe(
-      // TODO: let's not authorize each time, re-use JWT token given for 1h
-      map(_ => auth.fromJSON(this.conf.jwtAuth)),
-      tap(_authClient => authClient = _authClient),
-      tap(authClient => authClient.scopes = ['https://www.googleapis.com/auth/dfp']),
-      flatMap(authClient => from(authClient.authorize())),
+      flatMap(_ => this.authorize()),
+      tap(r => credentials = r),
       // TODO: let's cache clients?
       flatMap(_ => from(soap.createClientAsync(`https://ads.google.com/apis/ads/publisher/${this.conf.apiVersion}/${serviceName}?wsdl`))),
       tap(soapClient => {
         soapClient.addSoapHeader(this.formSoapHeaders());
-        soapClient.setSecurity(new soap.BearerSecurity(authClient.credentials.access_token));
+        soapClient.setSecurity(new soap.BearerSecurity(credentials.access_token));
       }),
       flatMap(soapClient => from(soapClient[methodName + 'Async'](...args))), // TODO: add error verbosity to understand what methodName failed
       map(result => result[0]),
