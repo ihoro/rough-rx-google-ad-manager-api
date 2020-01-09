@@ -1,6 +1,6 @@
 {
   "name": "@rough/rx-google-ad-manager-api",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A rough implementation of rxified Google Ad Manager API client",
   "main": "index.js",
   "scripts": {
